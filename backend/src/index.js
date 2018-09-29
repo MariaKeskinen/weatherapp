@@ -14,8 +14,11 @@ const app = new Koa();
 
 app.use(cors());
 
-const fetchWeather = async (lat, long) => {
-  let endpoint = `${mapURI}/weather?lat=${lat}&lon=${long}&appid=${appId}`;
+const fetchWeather = async (type, lat, long) => {
+  if (type !== 'weather' && type !== 'forecast') {
+    throw new Error('Type can be only weather or forecast');
+  }
+  let endpoint = `${mapURI}/${type}?lat=${lat}&lon=${long}&appid=${appId}`;
 
   const response = await fetch(endpoint);
 
@@ -23,10 +26,21 @@ const fetchWeather = async (lat, long) => {
 };
 
 router.get('/api/weather/:lat/:long', async ctx => {
-  const weatherData = await fetchWeather(ctx.params.lat, ctx.params.long);
+  const weatherData = await fetchWeather('weather', ctx.params.lat, ctx.params.long);
+  const city = weatherData.name ? { name: weatherData.name } : {};
+  const weather = weatherData.weather ? weatherData.weather[0] : {};
 
   ctx.type = 'application/json; charset=utf-8';
-  ctx.body = weatherData.weather ? weatherData.weather[0] : {};
+  ctx.body = { city, weather };
+});
+
+router.get('/api/forecast/:lat/:long', async ctx => {
+  const weatherData = await fetchWeather('forecast', ctx.params.lat, ctx.params.long);
+  const city = weatherData.city ? weatherData.city : {};
+  const forecast = weatherData.list ? weatherData.list : [];
+
+  ctx.type = 'application/json; charset=utf-8';
+  ctx.body = { city, forecast };
 });
 
 app.use(router.routes());
