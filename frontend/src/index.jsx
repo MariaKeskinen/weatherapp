@@ -3,15 +3,30 @@ import ReactDOM from 'react-dom';
 
 const baseURL = process.env.ENDPOINT;
 
-const getWeatherFromApi = async () => {
+const getWeatherFromApi = async (position) => {
   try {
-    const response = await fetch(`${baseURL}/weather`);
+    const response = await fetch(`${baseURL}/weather/${position.lat}/${position.long}`);
     return response.json();
   } catch (error) {
     console.error(error);
   }
 
   return {};
+};
+
+const getCurrentLocation = () => {
+  if ("geolocation" in navigator) {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition((position, error) => {
+        if (error) reject(error);
+        if (!position || !position.coords) reject("Cannot get position");
+
+        resolve({ lat: position.coords.latitude, long: position.coords.longitude });
+      })
+    });
+  } else {
+    return { lat: 60.192059, long: 24.945831}; // Helsinki, Finland
+  }
 };
 
 class Weather extends React.Component {
@@ -24,7 +39,8 @@ class Weather extends React.Component {
   }
 
   async componentWillMount() {
-    const weather = await getWeatherFromApi();
+    const position = await getCurrentLocation();
+    const weather = await getWeatherFromApi(position);
     this.setState({icon: weather.icon.slice(0, -1)});
   }
 
