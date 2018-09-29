@@ -1,0 +1,15 @@
+version: '3'
+services:
+  weatherapp-back:
+    command: node_modules/nodemon/bin/nodemon.js
+    ports:
+      - "9000:9000"
+      - "9229:9229"
+    volumes:
+      - ./backend:/var/www/weatherapp/backend
+    environment:
+    - NODE_ENV=development
+
+  weatherapp-front:
+    volumes:
+    - ./frontend:/var/www/weatherapp/frontend
