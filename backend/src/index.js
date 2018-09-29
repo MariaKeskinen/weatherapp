@@ -1,3 +1,4 @@
+require('dotenv').config();
 const debug = require('debug')('weathermap');
 
 const Koa = require('koa');
