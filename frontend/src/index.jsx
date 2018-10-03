@@ -1,11 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import DailyWeather from './components/dailyWeather';
+import FiveDayForecast from './components/fiveDayForecast';
+
 
 const baseURL = process.env.ENDPOINT;
 
-const getWeatherFromApi = async (position) => {
+const getWeatherFromApi = async (type, position) => {
+  if (type !== 'weather' && type !== 'forecast') {
+    return {};
+  }
   try {
-    const response = await fetch(`${baseURL}/weather/${position.lat}/${position.long}`);
+    const response = await fetch(`${baseURL}/${type}/${position.lat}/${position.long}`);
     return response.json();
   } catch (error) {
     console.error(error);
@@ -15,18 +21,17 @@ const getWeatherFromApi = async (position) => {
 };
 
 const getCurrentLocation = () => {
-  if ("geolocation" in navigator) {
+  if ('geolocation' in navigator) {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition((position, error) => {
         if (error) reject(error);
-        if (!position || !position.coords) reject("Cannot get position");
+        if (!position || !position.coords) reject('Cannot get position');
 
         resolve({ lat: position.coords.latitude, long: position.coords.longitude });
-      })
+      });
     });
-  } else {
-    return { lat: 60.192059, long: 24.945831}; // Helsinki, Finland
   }
+  return { lat: 60.192059, long: 24.945831 }; // Helsinki, Finland
 };
 
 class Weather extends React.Component {
@@ -34,22 +39,50 @@ class Weather extends React.Component {
     super(props);
 
     this.state = {
-      icon: "",
+      weather: null,
+      forecast: null,
+      weatherLoadError: null,
+      forecastLoadError: null,
     };
   }
 
   async componentWillMount() {
     const position = await getCurrentLocation();
-    const weather = await getWeatherFromApi(position);
-    this.setState({icon: weather.icon.slice(0, -1)});
+
+    getWeatherFromApi('weather', position)
+      .then((res) => {
+        this.setState({
+          weather: res,
+        });
+      }).catch(() => {
+        this.setState({
+          weatherLoadError: 'Error!',
+        });
+      });
+
+    getWeatherFromApi('forecast', position)
+      .then((res) => {
+        this.setState({
+          forecast: res,
+        });
+      }).catch(() => {
+        this.setState({
+          forecastLoadError: 'Error!',
+        });
+      });
   }
 
   render() {
-    const { icon } = this.state;
+    const { weather, forecast, weatherLoadError, forecastLoadError } = this.state;
 
     return (
-      <div className="icon">
-        { icon && <img src={`/img/${icon}.svg`} /> }
+      <div className="container">
+        <div className="dailyWeather">
+          <DailyWeather weather={weather} error={weatherLoadError} />
+        </div>
+        <div className="fiveDayForecast">
+          <FiveDayForecast forecast={forecast} error={forecastLoadError} />
+        </div>
       </div>
     );
   }

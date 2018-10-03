@@ -1,14 +1,25 @@
 body{
-  overflow: hidden;
-  position: absolute;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+}
+
+h1, h2, p {
+  text-align: center;
 }
 
 .icon {
-  width: 30vw;
-  height: 30vw;
+  width: 100%;
+  height: 100%;
+}
+
+.forecastItemIcon {
+  max-width: 60px;
+  margin: 0 auto;
+}
+
+.forecastItem {
+  text-align: center;
 }
